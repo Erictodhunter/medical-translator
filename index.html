@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medical Translator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            display: none;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🏥 Medical Document Translator</h1>
+        
+        <textarea id="input" placeholder="Paste your medical document here in any language..."></textarea>
+        
+        <button onclick="translate()" id="btn">Translate to English</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Translating...</p>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // YOU WILL REPLACE THIS URL AFTER DEPLOYMENT
+        let API_URL = 'YOUR_MODAL_URL_HERE';
+        
+        // Check if URL is stored
+        if (localStorage.getItem('modalUrl')) {
+            API_URL = localStorage.getItem('modalUrl');
+        }
+        
+        async function translate() {
+            const text = document.getElementById('input').value.trim();
+            if (!text) {
+                alert('Please enter text to translate');
+                return;
+            }
+            
+            // If URL not set, ask user
+            if (API_URL === 'YOUR_MODAL_URL_HERE') {
+                API_URL = prompt('Please enter your Modal API URL (from deployment):');
+                if (API_URL) {
+                    localStorage.setItem('modalUrl', API_URL);
+                } else {
+                    return;
+                }
+            }
+            
+            const btn = document.getElementById('btn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            btn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text: text})
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <h3>English Translation:</h3>
+                    <p style="line-height: 1.6; white-space: pre-wrap;">${data.translation}</p>
+                `;
+                result.style.display = 'block';
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
